@@ -13,30 +13,29 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.DO_SSH_KEY }}" > private_key
+        chmod 600 private_key
+
+    - name: Run commands on DigitalOcean Droplet
+      uses: appleboy/ssh-action@v0.1.5
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
-
-    - name: Copy fetch_alerts.sh to remote server
-      run: scp fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
-
-    - name: Copy analyze_alerts.py to remote server
-      run: scp analyze_alerts.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
-
-    - name: Execute fetch_alerts.sh on remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}"
-
-    - name: Execute analyze_alerts.py on remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "python3 /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.DO_SSH_KEY }}
+        script: |
+          rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json
+          curl -o /tmp/fetch_alerts.sh https://raw.githubusercontent.com/jorgesoft/honeylab/main/fetch_alerts.sh
+          curl -o /tmp/analyze_alerts.py https://raw.githubusercontent.com/jorgesoft/honeylab/main/analyze_alerts.py
+          chmod +x /tmp/fetch_alerts.sh
+          bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}
+          python3 /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json
 
     - name: Upload summary.json to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 cp /tmp/summary.json s3://baitfluentd/summary.json --region us-east-1
-
-    - name: Cleanup remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
+        scp -i private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/summary.json ./summary.json
+        aws s3 cp ./summary.json s3://baitfluentd/summary.json --region us-east-1
