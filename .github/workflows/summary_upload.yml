@@ -19,7 +19,7 @@ jobs:
         chmod 600 private_key
 
     - name: Run commands on DigitalOcean Droplet
-      uses: appleboy/ssh-action@v0.1.5
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
