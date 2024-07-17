@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honeylab Alerts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/united/bootstrap.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+        <!-- Include Font Awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .chart-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chart-legend {
+            margin-left: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+        table {
+            margin-bottom: 30px; /* Add margin to tables */
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .total-alerts {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="header-container">
+            <h1 class="mt-4">Honeylab Alerts</h1>
+            
+        </div>
+        <p>Last updated: <span id="last-updated"></span> - 
+            <a href="https://github.com/jorgesoft/pswd-app" class="icon-link" target="_blank">
+            <i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/jorgeecsilva/" class="icon-link" target="_blank">
+            <i class="fab fa-linkedin"></i></a></p>
+        <p class="total-alerts">Total Alerts: <span id="total-alerts"></span></p>
+        <div class="row">
+            <div class="col-md-4">
+                <h3>Rule Levels</h3>
+                <div class="chart-container">
+                    <div id="rule-level-chart"></div>
+                    <div id="rule-level-legend" class="chart-legend"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h3>Agent Names</h3>
+                <div class="chart-container">
+                    <div id="agent-name-chart"></div>
+                    <div id="agent-name-legend" class="chart-legend"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h3>Top 10 Source IPs</h3>
+                <div class="chart-container">
+                    <div id="srcip-chart"></div>
+                    <div id="srcip-legend" class="chart-legend"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Top 10 Rule Descriptions</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Rule Description</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rule-description-table"></tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h3>Top 10 Geo Locations</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Geo Location</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="geo-location-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('https://baitfluentd.s3.amazonaws.com/summary.json');
+            const data = await response.json();
+            return data;
+        }
+
+        function updateLastUpdated(dateString) {
+            document.getElementById('last-updated').textContent = dateString;
+        }
+
+        function updateTotalAlerts(data) {
+            const totalAlerts = Object.values(data.rule_description).reduce((a, b) => a + b, 0);
+            document.getElementById('total-alerts').textContent = totalAlerts;
+        }
+
+        function createPieChart(data, elementId, legendId) {
+            const width = 300, height = 300, margin = 40;
+            const radius = Math.min(width, height) / 2 - margin;
+
+            const svg = d3.select(elementId)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('g')
+                .attr('transform', `translate(${width / 2},${height / 2})`);
+
+            const color = d3.scaleOrdinal()
+                .domain(Object.keys(data))
+                .range(d3.schemeCategory10);
+
+            const pie = d3.pie()
+                .value(d => d[1]);
+
+            const data_ready = pie(Object.entries(data));
+
+            svg
+                .selectAll('path')
+                .data(data_ready)
+                .enter()
+                .append('path')
+                .attr('d', d3.arc()
+                    .innerRadius(0)
+                    .outerRadius(radius)
+                )
+                .attr('fill', d => color(d.data[0]))
+                .attr('stroke', 'black')
+                .style('stroke-width', '2px')
+                .style('opacity', 0.7);
+
+            const legend = d3.select(legendId);
+            legend.selectAll('div')
+                .data(data_ready)
+                .enter()
+                .append('div')
+                .attr('class', 'legend-item')
+                .html(d => `
+                    <div class="legend-color" style="background-color: ${color(d.data[0])};"></div>
+                    <div>${d.data[0]}: ${d.data[1]}</div>
+                `);
+        }
+
+        function populateTable(data, elementId) {
+            const tbody = document.getElementById(elementId);
+            tbody.innerHTML = '';
+            const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]);
+            sortedData.slice(0, 10).forEach(([key, value]) => {
+                const row = document.createElement('tr');
+                const keyCell = document.createElement('td');
+                keyCell.textContent = key;
+                const valueCell = document.createElement('td');
+                valueCell.textContent = value;
+                row.appendChild(keyCell);
+                row.appendChild(valueCell);
+                tbody.appendChild(row);
+            });
+        }
+
+        fetchData().then(data => {
+            updateLastUpdated(data.last_updated);
+            updateTotalAlerts(data);
+            createPieChart(sortData(data.rule_level), '#rule-level-chart', '#rule-level-legend');
+            createPieChart(sortData(data.agent_name), '#agent-name-chart', '#agent-name-legend');
+            createPieChart(sortData(Object.fromEntries(Object.entries(data.srcip).slice(0, 10))), '#srcip-chart', '#srcip-legend');
+            populateTable(data.rule_description, 'rule-description-table');
+            populateTable(data.geo_location, 'geo-location-table');
+        }).catch(error => console.error('Error loading data:', error));
+
+        function sortData(data) {
+            return Object.fromEntries(Object.entries(data).sort((a, b) => b[1] - a[1]));
+        }
+    </script>
+</body>
+</html>
