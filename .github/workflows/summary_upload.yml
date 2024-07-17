@@ -13,29 +13,32 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
     - name: Copy fetch_alerts.sh to remote server
-      run: scp fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+      run: scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
     - name: Copy analyze_alerts.py to remote server
-      run: scp analyze_alerts.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+      run: scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa analyze_alerts.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
     - name: Execute fetch_alerts.sh on remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}"
+      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}"
 
     - name: Execute analyze_alerts.py on remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "python3 /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
+      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "python3 /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
 
     - name: Upload summary.json to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 cp /tmp/summary.json s3://baitfluentd/summary.json --region us-east-1
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/summary.json ./summary.json
+        aws s3 cp ./summary.json s3://baitfluentd/summary.json --region us-east-1
 
     - name: Cleanup remote server
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
+      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
