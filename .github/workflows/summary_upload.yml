@@ -17,6 +17,7 @@ jobs:
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
 
     - name: Copy fetch_alerts.sh to remote server
       run: scp fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
