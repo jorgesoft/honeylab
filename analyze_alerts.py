@@ -13,7 +13,11 @@ def analyze_alerts(file_path, output_path):
     }
 
     with open(file_path, 'r') as file:
-        alerts = json.load(file)
+        try:
+            alerts = json.load(file)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return
 
     for alert in alerts:
         source = alert['_source']
