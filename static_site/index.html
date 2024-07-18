@@ -14,6 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100%;
         }
         .chart-legend {
             margin-left: 20px;
@@ -30,6 +31,7 @@
         }
         table {
             margin-bottom: 30px; /* Add margin to tables */
+            margin-top: 20px; /* Add margin to the top of tables */
         }
         .header-container {
             display: flex;
@@ -39,6 +41,19 @@
         }
         .total-alerts {
             font-size: 1.5em;
+        }
+        .card-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .total-alerts-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
     </style>
 </head>
@@ -52,7 +67,6 @@
             <i class="fab fa-github"></i></a> - 
             <a href="https://www.linkedin.com/in/jorgeecsilva/" class="icon-link" target="_blank">
             <i class="fab fa-linkedin"></i></a></p>
-        <p class="total-alerts">Total Alerts: <span id="total-alerts"></span></p>
         <div class="row">
             <div class="col-md-4">
                 <h3>Rule Levels</h3>
@@ -69,14 +83,18 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <h3>Top 10 Source IPs</h3>
-                <div class="chart-container">
-                    <div id="srcip-chart"></div>
-                    <div id="srcip-legend" class="chart-legend"></div>
+                <div class="chart-container card">
+                    <div class="card-body">
+                        <div class="total-alerts-container">
+                            <h2>Total Alerts: <span id="total-alerts"></span></h2>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
+        <p></p>
+        <p></p>
+        <p></p>
         <div class="row">
             <div class="col-md-6">
                 <h3>Top 10 Rule Descriptions</h3>
@@ -107,9 +125,15 @@
 
     <script>
         async function fetchData() {
-            const response = await fetch('https://baitfluentd.s3.amazonaws.com/summary.json');
-            const data = await response.json();
-            return data;
+            try {
+                const response = await fetch('https://baitfluentd.s3.amazonaws.com/summary.json');
+                const data = await response.json();
+                console.log('Fetched data:', data); // Log the fetched data to understand its structure
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
         }
 
         function updateLastUpdated(dateString) {
@@ -117,11 +141,20 @@
         }
 
         function updateTotalAlerts(data) {
-            const totalAlerts = Object.values(data.rule_description).reduce((a, b) => a + b, 0);
-            document.getElementById('total-alerts').textContent = totalAlerts;
+            if (data && data.rule_description) {
+                const totalAlerts = Object.values(data.rule_description).reduce((a, b) => a + b, 0);
+                document.getElementById('total-alerts').textContent = totalAlerts;
+            } else {
+                console.error('Data for rule descriptions is missing or invalid.');
+            }
         }
 
         function createPieChart(data, elementId, legendId) {
+            if (!data) {
+                console.error(`Data for ${elementId} is missing or invalid.`);
+                return;
+            }
+            
             const width = 200, height = 200, margin = 20; // Reduced size
             const radius = Math.min(width, height) / 2 - margin;
 
@@ -168,6 +201,11 @@
         }
 
         function populateTable(data, elementId) {
+            if (!data) {
+                console.error(`Data for ${elementId} is missing or invalid.`);
+                return;
+            }
+
             const tbody = document.getElementById(elementId);
             tbody.innerHTML = '';
             const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]);
@@ -184,16 +222,21 @@
         }
 
         fetchData().then(data => {
+            if (!data) {
+                console.error('No data received');
+                return;
+            }
+
             updateLastUpdated(data.last_updated);
             updateTotalAlerts(data);
             createPieChart(sortData(data.rule_level), '#rule-level-chart', '#rule-level-legend');
             createPieChart(sortData(data.agent_name), '#agent-name-chart', '#agent-name-legend');
-            createPieChart(sortData(Object.fromEntries(Object.entries(data.srcip).slice(0, 10))), '#srcip-chart', '#srcip-legend');
             populateTable(data.rule_description, 'rule-description-table');
             populateTable(data.geo_location, 'geo-location-table');
         }).catch(error => console.error('Error loading data:', error));
 
         function sortData(data) {
+            if (!data) return {};
             return Object.fromEntries(Object.entries(data).sort((a, b) => b[1] - a[1]));
         }
     </script>
