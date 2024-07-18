@@ -7,7 +7,6 @@ def analyze_alerts(file_path, output_path):
     counts = {
         'rule_level': defaultdict(int),
         'agent_name': defaultdict(int),
-        'srcip': defaultdict(int),
         'rule_description': defaultdict(int),
         'geo_location': defaultdict(int)
     }
@@ -30,11 +29,6 @@ def analyze_alerts(file_path, output_path):
         agent_name = source['agent']['name']
         counts['agent_name'][agent_name] += 1
 
-        # Count source IPs
-        srcip = source.get('data', {}).get('srcip')
-        if srcip:
-            counts['srcip'][srcip] += 1
-
         # Count rule descriptions
         rule_description = source['rule']['description']
         counts['rule_description'][rule_description] += 1
@@ -49,7 +43,6 @@ def analyze_alerts(file_path, output_path):
         'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'rule_level': dict(counts['rule_level']),
         'agent_name': dict(counts['agent_name']),
-        'srcip': dict(counts['srcip']),
         'rule_description': dict(counts['rule_description']),
         'geo_location': dict(counts['geo_location'])
     }

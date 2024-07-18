@@ -40,7 +40,7 @@ echo "Total alerts in the last 7 days: $TOTAL"
 while [ $FROM -lt $TOTAL ]; do
   RESPONSE=$(curl -s -u $USERNAME:$PASSWORD -k -X GET "https://127.0.0.1:9200/wazuh-alerts*/_search?pretty" -H 'Content-Type: application/json' -d'
   {
-    "_source": ["agent.name", "data.srcip", "rule.level", "rule.description", "@timestamp", "GeoLocation"],
+    "_source": ["agent.name", "rule.level", "rule.description", "@timestamp", "GeoLocation"],
     "query": {
       "bool": {
         "filter": [
@@ -84,4 +84,3 @@ done
 echo "]" >> $OUTPUT_FILE
 
 echo "Results saved to $OUTPUT_FILE"
-
