@@ -28,7 +28,7 @@ Note: The Infrastructure as Code for the resources above is not public to hide t
 4. It then uploads the summary as a JSON to an S3 bucket
 5. A static site hosted in Azure gets the summary and presents it at https://honeylab.jorgesilva.pro
 
-$ TODO
+## TODO
 
 - Configure vulnerabilities in the honeypots
 - Enhance the public summary
