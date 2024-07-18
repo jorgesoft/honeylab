@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Honeylab Alerts</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/united/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/simplex/bootstrap.min.css" rel="stylesheet">
     <script src="https://d3js.org/d3.v6.min.js"></script>
-        <!-- Include Font Awesome -->
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <!-- Include Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
     <style>
         .chart-container {
             position: relative;
@@ -46,7 +46,6 @@
     <div class="container-fluid">
         <div class="header-container">
             <h1 class="mt-4">Honeylab Alerts</h1>
-            
         </div>
         <p>Last updated: <span id="last-updated"></span> - 
             <a href="https://github.com/jorgesoft/pswd-app" class="icon-link" target="_blank">
@@ -152,8 +151,8 @@
                     .outerRadius(radius)
                 )
                 .attr('fill', d => color(d.data[0]))
-                .attr('stroke', 'black')
-                .style('stroke-width', '2px')
+                .attr('stroke', '#d3d3d3')  // Lighter border color
+                .style('stroke-width', '1px')  // Thinner border
                 .style('opacity', 0.7);
 
             const legend = d3.select(legendId);
