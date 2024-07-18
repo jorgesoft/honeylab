@@ -85,5 +85,3 @@ echo "]" >> $OUTPUT_FILE
 
 echo "Results saved to $OUTPUT_FILE"
 
-# Print out the final JSON for debugging
-cat $OUTPUT_FILE

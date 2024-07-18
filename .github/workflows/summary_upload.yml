@@ -30,7 +30,7 @@ jobs:
       run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}"
 
     - name: Execute analyze_alerts.py on remote server
-      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "python3 /tmp/analyze_alerts.py ~/alerts.json /tmp/summary.json"
+      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "python3 /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
 
     - name: Upload summary.json to S3
       env:
