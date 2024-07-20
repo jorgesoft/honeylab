@@ -34,8 +34,9 @@ def analyze_alerts(file_path, output_path):
         counts['rule_description'][rule_description] += 1
 
         # Count geo locations (country names)
-        geo_location = source.get('GeoLocation', {}).get('country_name', 'unknown')
-        counts['geo_location'][geo_location] += 1
+        geo_location = source.get('GeoLocation', {}).get('country_name')
+        if geo_location:
+            counts['geo_location'][geo_location] += 1
 
     # Convert defaultdict to dict for JSON serialization
     summary = {
