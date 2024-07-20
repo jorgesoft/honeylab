@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Honeylab Alerts</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/simplex/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/yeti/bootstrap.min.css" rel="stylesheet">
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <!-- Include Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
@@ -60,23 +60,24 @@
 <body>
     <div class="container-fluid">
         <div class="header-container">
-            <h1 class="mt-4">Honeylab Alerts</h1>
-        </div>
-        <p>Last updated: <span id="last-updated"></span> - 
+            <h1 class="mt-4">Honeylab Alerts |
             <a href="https://github.com/jorgesoft/honeylab" class="icon-link" target="_blank">
-            <i class="fab fa-github"></i></a> - 
+            <i class="fab fa-github"></i></a> | 
             <a href="https://www.linkedin.com/in/jorgeecsilva/" class="icon-link" target="_blank">
-            <i class="fab fa-linkedin"></i></a></p>
+            <i class="fab fa-linkedin"></i></a>
+            </h1>
+        </div>
+        <p>Last updated: <span id="last-updated"></span></p>
         <div class="row">
             <div class="col-md-4">
-                <h3>Rule Levels</h3>
+                <h3>Alerts Levels</h3>
                 <div class="chart-container">
                     <div id="rule-level-chart"></div>
                     <div id="rule-level-legend" class="chart-legend"></div>
                 </div>
             </div>
             <div class="col-md-4">
-                <h3>Agent Names</h3>
+                <h3>Alerts per Agent</h3>
                 <div class="chart-container">
                     <div id="agent-name-chart"></div>
                     <div id="agent-name-legend" class="chart-legend"></div>
@@ -93,15 +94,13 @@
             </div>
         </div>
         <p></p>
-        <p></p>
-        <p></p>
         <div class="row">
             <div class="col-md-6">
-                <h3>Top 10 Rule Descriptions</h3>
+                <h3>Top 10 Alerts Descriptions</h3>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Rule Description</th>
+                            <th>Alert Description</th>
                             <th>Count</th>
                         </tr>
                     </thead>
@@ -109,11 +108,11 @@
                 </table>
             </div>
             <div class="col-md-6">
-                <h3>Top 10 Geo Locations</h3>
+                <h3>Top 10 Source Countries</h3>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Geo Location</th>
+                            <th>Country</th>
                             <th>Count</th>
                         </tr>
                     </thead>
