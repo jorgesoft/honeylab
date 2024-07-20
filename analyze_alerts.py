@@ -22,21 +22,20 @@ def analyze_alerts(file_path, output_path):
         source = alert['_source']
         
         # Count rule levels
-        rule_level = source['rule']['level']
+        rule_level = source['rule'].get('level', 'unknown')
         counts['rule_level'][rule_level] += 1
 
         # Count agent names
-        agent_name = source['agent']['name']
+        agent_name = source['agent'].get('name', 'unknown')
         counts['agent_name'][agent_name] += 1
 
         # Count rule descriptions
-        rule_description = source['rule']['description']
+        rule_description = source['rule'].get('description', 'unknown')
         counts['rule_description'][rule_description] += 1
 
         # Count geo locations (country names)
-        geo_location = source.get('GeoLocation', {}).get('country_name')
-        if geo_location:
-            counts['geo_location'][geo_location] += 1
+        geo_location = source.get('GeoLocation', {}).get('country_name', 'unknown')
+        counts['geo_location'][geo_location] += 1
 
     # Convert defaultdict to dict for JSON serialization
     summary = {
