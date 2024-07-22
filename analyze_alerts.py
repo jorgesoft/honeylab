@@ -19,19 +19,25 @@ def analyze_alerts(file_path, output_path):
             return
 
     for alert in alerts:
-        source = alert['_source']
-        
+        if not alert or not isinstance(alert, dict):
+            continue
+
+        source = alert.get('_source', {})
+
         # Count rule levels
-        rule_level = source['rule'].get('level', 'unknown')
-        counts['rule_level'][rule_level] += 1
+        rule_level = source.get('rule', {}).get('level')
+        if rule_level is not None:
+            counts['rule_level'][rule_level] += 1
 
         # Count agent names
-        agent_name = source['agent'].get('name', 'unknown')
-        counts['agent_name'][agent_name] += 1
+        agent_name = source.get('agent', {}).get('name')
+        if agent_name:
+            counts['agent_name'][agent_name] += 1
 
         # Count rule descriptions
-        rule_description = source['rule'].get('description', 'unknown')
-        counts['rule_description'][rule_description] += 1
+        rule_description = source.get('rule', {}).get('description')
+        if rule_description:
+            counts['rule_description'][rule_description] += 1
 
         # Count geo locations (country names)
         geo_location = source.get('GeoLocation', {}).get('country_name')
