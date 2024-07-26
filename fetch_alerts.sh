@@ -84,3 +84,8 @@ done
 echo "]" >> $OUTPUT_FILE
 
 echo "Results saved to $OUTPUT_FILE"
+
+# Save a copy of alerts.json with a timestamp
+TIMESTAMP=$(date +%s)
+mkdir -p /root/alerts
+cp $OUTPUT_FILE /root/alerts/alerts${TIMESTAMP}.json
