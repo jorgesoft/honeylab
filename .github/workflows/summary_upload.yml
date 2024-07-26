@@ -21,10 +21,10 @@ jobs:
         ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
     - name: Copy fetch_alerts.sh to remote server
-      run: scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+      run: scp -o StrictHostKeyChecking=no fetch_alerts.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
     - name: Copy analyze_alerts.py to remote server
-      run: scp -o StrictHostKeyChecking=no ~/.ssh/id_rsa analyze_alerts.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+      run: scp -o StrictHostKeyChecking=no analyze_alerts.py ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
     - name: Execute fetch_alerts.sh on remote server
       run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /tmp/fetch_alerts.sh ${{ secrets.WAZUH_USER }} ${{ secrets.WAZUH_PASSWORD }}"
@@ -37,8 +37,13 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/summary.json ./summary.json
+        scp -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/summary.json ./summary.json
         aws s3 cp ./summary.json s3://baitfluentd/summary.json --region us-east-1
 
-    - name: Cleanup remote server (keeping alerts.json for debugging)
-      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/summary.json"
+    - name: Save alerts.json with timestamp
+      run: |
+        TIMESTAMP=$(date +%s)
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /root/alerts && cp /tmp/alerts.json /root/alerts/alerts${TIMESTAMP}.json"
+
+    - name: Cleanup remote server
+      run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "rm -f /tmp/fetch_alerts.sh /tmp/analyze_alerts.py /tmp/alerts.json /tmp/summary.json"
