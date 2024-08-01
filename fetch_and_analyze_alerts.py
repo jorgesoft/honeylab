@@ -12,12 +12,12 @@ def fetch_and_analyze_alerts(username, password, output_path):
     # Elasticsearch URL
     es_url = "https://127.0.0.1:9200/wazuh-alerts*/_search"
 
-    # Query for total count of alerts for the last 7 days
+    # Query for total count of alerts for the last 3 days
     total_query = {
         "query": {
             "range": {
                 "@timestamp": {
-                    "gte": "now-7d/d",
+                    "gte": "now-3d/d",
                     "lte": "now/d"
                 }
             }
@@ -33,7 +33,7 @@ def fetch_and_analyze_alerts(username, password, output_path):
         return
 
     total = response.json().get('hits', {}).get('total', {}).get('value', 0)
-    print(f"Total alerts in the last 7 days: {total}")
+    print(f"Total alerts in the last 3 days: {total}")
 
     counts = {
         'rule_level': defaultdict(int),
@@ -52,7 +52,7 @@ def fetch_and_analyze_alerts(username, password, output_path):
                         {
                             "range": {
                                 "@timestamp": {
-                                    "gte": "now-7d/d",
+                                    "gte": "now-3d/d",
                                     "lte": "now/d"
                                 }
                             }
