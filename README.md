@@ -1,4 +1,4 @@
-# Honeylab 
+# Honeylab (disabled due cost, will enable later)
 
 Honeylab is a project to analyze data collected from cloud honeypots using Wazuh. 
 
